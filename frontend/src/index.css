@@ -1,0 +1,463 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
+@import "tailwindcss";
+
+/* ─── Design Tokens ───────────────────────────────────────────────────────── */
+:root {
+  --accent: #4F6EF7;
+  --accent-light: #EEF2FF;
+  --accent-hover: #3B5BDB;
+  --accent-shadow: rgba(79, 110, 247, 0.18);
+
+  --surface: #FFFFFF;
+  --surface-soft: #F8FAFF;
+  --surface-hover: #EEF2FF;
+
+  --border: rgba(0, 0, 0, 0.08);
+  --border-soft: rgba(79, 110, 247, 0.15);
+
+  --text-primary: #1A1D2E;
+  --text-secondary: #4A5173;
+  --text-muted: #8B91B8;
+
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(0, 0, 0, 0.06);
+
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.10);
+}
+
+/* ─── Keyframes ───────────────────────────────────────────────────────────── */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* ─── Base ────────────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  color: var(--text-primary);
+  background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%);
+}
+
+/* ─── App background ──────────────────────────────────────────────────────── */
+.app-bg {
+  background:
+    radial-gradient(ellipse 70% 55% at 15% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 45% at 85% 100%, rgba(139, 92, 246, 0.06) 0%, transparent 65%),
+    radial-gradient(ellipse 80% 60% at 50% 50%, rgba(219, 234, 254, 0.40) 0%, transparent 80%),
+    linear-gradient(135deg, #ebf2fa 0%, #EFF6FF 60%, #F0F4FF 100%);
+}
+
+/* ─── Header ──────────────────────────────────────────────────────────────── */
+.header-surface {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.07), 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* ─── Sidebar ─────────────────────────────────────────────────────────────── */
+.sidebar-surface {
+  background: rgba(255, 255, 255, 0.80);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* ─── Assistant bubble ────────────────────────────────────────────────────── */
+.assistant-bubble {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+.assistant-bubble:hover {
+  border-color: rgba(79, 110, 247, 0.20) !important;
+}
+
+/* ─── Input container ─────────────────────────────────────────────────────── */
+.input-container {
+  background: rgba(255, 255, 255, 0.97);
+  border: 1.5px solid rgba(0, 0, 0, 0.09);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-container:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-shadow), var(--shadow-md);
+}
+
+/* ─── Input fade gradient ─────────────────────────────────────────────────── */
+.input-fade-bg {
+  background: linear-gradient(to top,
+      rgba(239, 246, 255, 1) 0%,
+      rgba(239, 246, 255, 0.97) 55%,
+      transparent 100%);
+}
+
+/* ─── Suggestion cards ────────────────────────────────────────────────────── */
+.suggestion-card {
+  background: rgba(255, 255, 255, 0.80);
+  border: 1.5px solid rgba(0, 0, 0, 0.07);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.suggestion-card:hover {
+  background: rgba(238, 242, 255, 0.95);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+/* ─── Animations ──────────────────────────────────────────────────────────── */
+.animate-fade-in {
+  animation: fadeIn 0.35s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.35s ease-out forwards;
+}
+
+/* ─── Scrollbar ───────────────────────────────────────────────────────────── */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(79, 110, 247, 0.18) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(79, 110, 247, 0.18);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(79, 110, 247, 0.32);
+}
+
+/* ─── Markdown body ───────────────────────────────────────────────────────── */
+.markdown-body {
+  font-size: 0.875rem;
+  line-height: 1.75;
+  color: var(--text-primary);
+}
+
+/* ─── KaTeX Math Rendering ────────────────────────────────────────────────── */
+.markdown-body .katex {
+  font-size: 1.08em;
+}
+
+.markdown-body .katex-display {
+  margin: 1.25rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5rem 0;
+}
+
+.markdown-body .katex-display > .katex {
+  white-space: normal;
+}
+
+/* Inline math - highlighted background */
+.markdown-body p .katex,
+.markdown-body li .katex {
+  background: rgba(99, 102, 241, 0.08);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(99, 102, 241, 0.15);
+}
+
+/* Inline math */
+.markdown-body .katex-html {
+  display: inline-block;
+}
+
+/* Display math styling - enhanced */
+.markdown-body .katex-display {
+  background: linear-gradient(135deg, rgba(239, 246, 255, 0.8) 0%, rgba(224, 242, 254, 0.6) 100%);
+  border: 2px solid rgba(79, 110, 247, 0.25);
+  border-left: 4px solid var(--accent);
+  border-radius: 10px;
+  padding: 1.25rem 1.75rem;
+  box-shadow: 0 2px 8px rgba(79, 110, 247, 0.08);
+  position: relative;
+}
+
+/* Math label */
+.markdown-body .katex-display::before {
+  content: "EQUATION";
+  position: absolute;
+  top: 6px;
+  right: 12px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: rgba(79, 110, 247, 0.5);
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* Math scrollbar */
+.markdown-body .katex-display::-webkit-scrollbar {
+  height: 5px;
+}
+
+.markdown-body .katex-display::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+.markdown-body .katex-display::-webkit-scrollbar-thumb {
+  background: rgba(79, 110, 247, 0.35);
+  border-radius: 4px;
+}
+
+.markdown-body .katex-display::-webkit-scrollbar-thumb:hover {
+  background: rgba(79, 110, 247, 0.6);
+}
+
+.markdown-body p {
+  margin-bottom: 0.85rem;
+}
+
+.markdown-body p:last-child {
+  margin-bottom: 0;
+}
+
+.markdown-body a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.markdown-body a:hover {
+  text-decoration: underline;
+}
+
+.markdown-body ul {
+  list-style: disc;
+  padding-left: 1.3rem;
+  margin-bottom: 0.85rem;
+}
+
+.markdown-body ol {
+  list-style: decimal;
+  padding-left: 1.3rem;
+  margin-bottom: 0.85rem;
+}
+
+.markdown-body li {
+  margin-bottom: 0.3rem;
+  color: var(--text-secondary);
+}
+
+.markdown-body pre {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.97) 0%, rgba(30, 41, 59, 0.95) 100%);
+  border: 2px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Code block label */
+.markdown-body pre::before {
+  content: "CODE";
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: rgba(148, 163, 184, 0.6);
+  font-family: 'DM Sans', sans-serif;
+}
+
+.markdown-body pre::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.markdown-body pre::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+}
+
+.markdown-body pre::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.4);
+  border-radius: 10px;
+}
+
+.markdown-body pre::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(148, 163, 184, 0.6);
+}
+
+.markdown-body code {
+  background: rgba(99, 102, 241, 0.08);
+  color: #4338CA;
+  padding: 2px 6px;
+  border-radius: 5px;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.86em;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  font-weight: 500;
+}
+
+.markdown-body pre code {
+  background: transparent;
+  color: #E2E8F0;
+  padding: 0;
+  border: none;
+  font-size: 0.875em;
+  font-weight: 400;
+}
+
+.markdown-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 0.85rem;
+  font-size: 0.875rem;
+}
+
+.markdown-body th,
+.markdown-body td {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.markdown-body th {
+  background: #F1F5F9;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.markdown-body td {
+  color: var(--text-secondary);
+  background: #FFFFFF;
+}
+
+.markdown-body blockquote {
+  border-left: 3px solid var(--accent);
+  background: #EEF2FF;
+  padding: 0.5rem 0.875rem;
+  border-radius: 0 8px 8px 0;
+  margin: 0.5rem 0 0.85rem;
+  color: var(--text-secondary);
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4 {
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.markdown-body hr {
+  border: none;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  margin: 1rem 0;
+}
+
+/* ─── Utility overrides for consistent light-mode text ───────────────────── */
+.text-slate-800 {
+  color: #1A1D2E !important;
+}
+
+.text-slate-700 {
+  color: #374151 !important;
+}
+
+.text-slate-600 {
+  color: #4B5563 !important;
+}
+
+.text-slate-500 {
+  color: #6B7280 !important;
+}
+
+.text-slate-400 {
+  color: #9CA3AF !important;
+}
+
+.text-slate-300 {
+  color: #D1D5DB !important;
+}
+
+/* ─── Image zoom cursor ───────────────────────────────────────────────────── */
+.cursor-zoom {
+  cursor: zoom-in;
+}
+
+/* ─── Smooth transitions ──────────────────────────────────────────────────── */
+.transition-layout {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── Math equation hover effect ──────────────────────────────────────────── */
+.markdown-body .katex-display:hover {
+  border-color: rgba(79, 110, 247, 0.4);
+  box-shadow: 0 4px 12px rgba(79, 110, 247, 0.15);
+}
+
+/* ─── Code block hover effect ──────────────────────────────────────────────── */
+.markdown-body pre:hover {
+  border-color: rgba(148, 163, 184, 0.4);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}

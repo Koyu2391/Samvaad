@@ -1,0 +1,62 @@
+# OS/editor
+.DS_Store
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# Virtual environments
+venv/
+.venv/
+myvenv/
+backend/myvenv/
+
+# Node
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# Runtime/generated app data
+backend/uploads/
+backend/conversations/
+backend/chroma_db/
+backend/chroma_db_api/
+backend/chroma_db_langchain/
+backend/chroma_db_llama/
+
+# Local model artifacts
+backend/models/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Env / secrets - NEVER commit real credentials
+.env
+.env.local
+.env.*.local
+backend/.env
+!.env.prod.example
+!backend/.env.example
+
+# Databases / redis dumps
+*.db
+*.sqlite
+*.sqlite3
+*.rdb
+dump.rdb
+
+# Logs
+*.log
+logs/
+backend/*.log
+
+# Local runtime / generated
+backend/convs/
+temp.py

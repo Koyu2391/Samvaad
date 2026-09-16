@@ -1,0 +1,3 @@
+# Placeholder for pre-pulled GGUF model files on the prod VM.
+# Copy e.g. gemma-4-E4B-it-Q5_K_M.gguf here (never commit *.gguf).
+# Mounted as llm_models:/models in docker-compose.prod.yml.

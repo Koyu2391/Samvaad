@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+myvenv/
+.venv/
+venv/
+uploads/
+conversations/
+convs/
+chroma_db*/
+*.db
+*.log
+.env

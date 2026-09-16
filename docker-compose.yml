@@ -1,0 +1,110 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: samvaad_postgres
+    environment:
+      POSTGRES_USER: rag_user
+      POSTGRES_PASSWORD: rag_password
+      POSTGRES_DB: rag_financial
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rag_user -d rag_financial"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: samvaad_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: samvaad_backend
+    ports:
+      - "8002:8002"
+    environment:
+      DATABASE_URL: postgresql://rag_user:rag_password@postgres:5432/rag_financial
+      USE_SQLITE_FALLBACK: "true"
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET_KEY: change-this-secret-key-in-production-use-openssl-rand-hex-32
+      CORS_ORIGINS: http://localhost,http://localhost:80,http://localhost:5173,http://localhost:3000
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      LLAMACPP_BASE_URL: http://host.docker.internal:8000
+      LLM_PROVIDER: llama.cpp
+      CELERY_TASK_ALWAYS_EAGER: "false"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - backend_uploads:/app/uploads
+      - chroma_api:/app/chroma_db_api
+      - backend_convs:/app/convs
+      - backend_conversations:/app/conversations
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: samvaad_worker
+    command: celery -A tasks.celery_app worker --loglevel=info --pool=solo
+    environment:
+      DATABASE_URL: postgresql://rag_user:rag_password@postgres:5432/rag_financial
+      USE_SQLITE_FALLBACK: "true"
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET_KEY: change-this-secret-key-in-production-use-openssl-rand-hex-32
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      LLAMACPP_BASE_URL: http://host.docker.internal:8000
+      LLM_PROVIDER: llama.cpp
+    depends_on:
+      - redis
+      - postgres
+      - backend
+    volumes:
+      - backend_uploads:/app/uploads
+      - chroma_api:/app/chroma_db_api
+      - backend_convs:/app/convs
+      - backend_conversations:/app/conversations
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: ./frontend/Dockerfile
+    container_name: samvaad_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  backend_uploads:
+  chroma_api:
+  backend_convs:
+  backend_conversations:

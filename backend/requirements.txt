@@ -1,0 +1,48 @@
+streamlit
+ollama
+langchain
+langchain-community
+langchain-core
+langchain-huggingface
+langchain-ollama
+langchain-text-splitters
+chromadb
+sentence-transformers
+rank-bm25
+pdfplumber
+pypdf
+nltk
+pymupdf4llm
+pytesseract
+open_clip_torch
+pillow
+torch
+torchvision
+fastapi
+uvicorn
+python-multipart
+
+# Auth & Database
+sqlalchemy>=2.0.23
+psycopg2-binary>=2.9.9
+pgvector>=0.3.0
+alembic>=1.13.1
+pydantic>=2.7.0
+pydantic-settings>=2.2.0
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+bcrypt==4.0.1
+python-dotenv>=1.0.0
+email-validator>=2.1.0
+
+# Task Queue
+celery>=5.3.4
+redis>=5.0.1
+
+# Orchestration & Re-ranking (Phase 2-5)
+langgraph>=0.2.0
+flashrank>=0.2.10
+
+# Document parsing (Phase 2)
+docling>=2.0.0      # optional — falls back to pdfplumber if not installed
+pypdfium2>=4.20.0   # Docling backend

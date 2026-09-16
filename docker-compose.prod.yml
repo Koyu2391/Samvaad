@@ -1,0 +1,153 @@
+# ── Samvaad PROD override (Phase 0-4) ──
+# Usage: docker compose --env-file /etc/samvaad/.env.prod \
+#          -f docker-compose.yml -f docker-compose.prod.yml up -d
+# Secrets come from /etc/samvaad/.env.prod (see .env.prod.example).
+x-logging: &prod-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  llm:
+    image: ghcr.io/ggml-org/llama.cpp:server-cuda
+    container_name: samvaad_llm
+    command:
+      - -m
+      - /models/${LLAMACPP_MODEL_FILE:-gemma-4-E4B-it-Q5_K_M.gguf}
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --ctx-size
+      - ${LLAMACPP_CTX_SIZE:-8192}
+      - --n-gpu-layers
+      - ${LLAMACPP_N_GPU_LAYERS:-99}
+      - --threads
+      - ${LLAMACPP_THREADS:-8}
+      - --chat-template-kwargs
+      - '{"enable_thinking":false}'
+    ports: [] # internal only; backend/worker reach it as http://llm:8000
+    volumes:
+      - llm_models:/models:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 120s
+    restart: unless-stopped
+    logging: *prod-logging
+
+  pgbackup:
+    # Nightly pg_dump (incl. PGVector chunks) to a named volume; copy off-VM.
+    image: pgvector/pgvector:pg16
+    container_name: samvaad_pgbackup
+    command: ["sh", "/scripts/pgbackup.sh"]
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-rag_user}
+      POSTGRES_DB: ${POSTGRES_DB:-rag_financial}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.prod}
+      BACKUP_INTERVAL_SECS: ${BACKUP_INTERVAL_SECS:-86400}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - pg_backups:/backups
+      - ./infra/pgbackup.sh:/scripts/pgbackup.sh:ro
+    restart: unless-stopped
+    logging: *prod-logging
+
+  postgres:
+    # Phase 2: pgvector image (inherits base service image; PIN here for clarity)
+    image: pgvector/pgvector:pg16
+    ports: !override []
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-rag_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.prod}
+      POSTGRES_DB: ${POSTGRES_DB:-rag_financial}
+
+  redis:
+    ports: !override []
+    command: redis-server --appendonly yes
+
+  backend:
+    ports: !override [] # only exposed through frontend/nginx
+    extra_hosts: !override [] # no host.docker.internal in prod
+    logging: *prod-logging
+    env_file:
+      - path: /etc/samvaad/.env.prod
+        required: false # present on prod VM; local `config` check uses shell env instead
+    # !override drops dev hardcoded env (old creds, localhost CORS, host.docker.internal URLs)
+    environment: !override
+      APP_ENV: prod
+      DATABASE_URL: ${DATABASE_URL:?set DATABASE_URL in .env.prod}
+      USE_SQLITE_FALLBACK: "false"
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?set JWT_SECRET_KEY in .env.prod}
+      CORS_ORIGINS: ${CORS_ORIGINS:?set CORS_ORIGINS in .env.prod}
+      LLM_PROVIDER: ${LLM_PROVIDER:-llama.cpp}
+      LLAMACPP_BASE_URL: ${LLAMACPP_BASE_URL:-http://llm:8000}
+      CELERY_TASK_ALWAYS_EAGER: "false"
+    # extra_hosts removed in prod (no host.docker.internal)
+    command: uvicorn main:app --host 0.0.0.0 --port 8002 --workers 2 --proxy-headers
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      llm:
+        condition: service_healthy
+
+  worker:
+    extra_hosts: !override []
+    logging: *prod-logging
+    env_file:
+      - path: /etc/samvaad/.env.prod
+        required: false
+    environment: !override
+      APP_ENV: prod
+      DATABASE_URL: ${DATABASE_URL:?set DATABASE_URL in .env.prod}
+      USE_SQLITE_FALLBACK: "false"
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?set JWT_SECRET_KEY in .env.prod}
+      LLM_PROVIDER: ${LLM_PROVIDER:-llama.cpp}
+      LLAMACPP_BASE_URL: ${LLAMACPP_BASE_URL:-http://llm:8000}
+    command: celery -A tasks.celery_app worker --loglevel=info --pool=gevent --concurrency=4
+
+  frontend:
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      # Frontend calls same-origin /api (see src/services/api.ts); no build-arg needed.
+      TLS_DOMAIN: ${TLS_DOMAIN:?set TLS_DOMAIN in .env.prod}
+    volumes:
+      # Template rendered to /etc/nginx/nginx.conf by prod-05-domain.sh at boot.
+      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.prod.template:ro
+      - ./nginx/prod-05-domain.sh:/docker-entrypoint.d/05-domain.sh:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      backend:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --no-check-certificate -O /dev/null https://127.0.0.1/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+    logging: *prod-logging
+
+volumes:
+  llm_models: # pre-pulled GGUF files; see infra/llm/README.md
+    name: samvaad_llm_models
+  pg_backups:
+    name: samvaad_pg_backups
